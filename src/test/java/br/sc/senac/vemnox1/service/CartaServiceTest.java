@@ -33,7 +33,7 @@ import br.sc.senac.vemnox1.model.repository.CartaRepository;
 import br.sc.senac.vemnox1.model.seletor.CartaSeletor;
 
 @SpringBootTest
-@ActiveProfiles("test") 
+@ActiveProfiles("test")
 public class CartaServiceTest {
 
     @Mock
@@ -44,39 +44,37 @@ public class CartaServiceTest {
 
     @InjectMocks
     private CartaService cartaService;
-    
     private List<Carta> cartas = new ArrayList();
-    private List<CartaDTO> cartasDTO = new ArrayList(); 
+    private List<CartaDTO> cartasDTO = new ArrayList();
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         carregarCartas();
     }
-    
-	private void carregarCartas() {
+
+    private void carregarCartas() {
         cartas = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             Carta carta = new Carta();
-            carta.setId(i + 1); 
+            carta.setId(i + 1);
             carta.setForca(i % 5);
-            carta.setInteligencia(i % 5); 
+            carta.setInteligencia(i % 5);
             carta.setVelocidade(i % 5);
             carta.setNome("Carta " + i);
-            
             cartasDTO.add(carta.toDTO(carta, 0, 0));
             cartas.add(carta);
         }
-        when(cartaRepository.findAll()).thenReturn(cartas); 
-        when(cartaService.pesquisarComSeletor(any())).thenReturn(cartas); 
+        when(cartaRepository.findAll()).thenReturn(cartas);
+        when(cartaService.pesquisarComSeletor(any())).thenReturn(cartas);
         when(cartaNaPartidaRepository.countByPartidas(any(), any())).thenReturn(1l);
     }
 
     @Test
     @DisplayName("Deve retornar todas as cartas")
     public void testPesquisarTodas() {
-        //Simula a carga de 10 cartas na base
-    	when(cartaRepository.findAll()).thenReturn(cartas);
+        // Simula a carga de 10 cartas na base
+        when(cartaRepository.findAll()).thenReturn(cartas);
 
         List<Carta> resultado = cartaService.pesquisarTodas();
 
@@ -89,7 +87,6 @@ public class CartaServiceTest {
     public void testPesquisarPorId() throws VemNoX1Exception {
         Carta carta = new Carta();
         carta.setId(1);
-       
         when(cartaRepository.findById(1)).thenReturn(Optional.of(carta));
 
         Carta resultado = cartaService.pesquisarPorId(1);
@@ -128,54 +125,52 @@ public class CartaServiceTest {
 
     @Test
     @DisplayName("Deve lançar exceção ao inserir uma "
-    		+ "carta com somatório maior que 10")
+            + "carta com somatório maior que 10")
     public void testInserir_CartaComSomatorioMaiorQue10() {
         Carta novaCarta = new Carta();
         novaCarta.setForca(5);
         novaCarta.setInteligencia(6);
-        novaCarta.setVelocidade(5); 
+        novaCarta.setVelocidade(5);
 
         VemNoX1Exception exception = Assertions
-        		.assertThrows(VemNoX1Exception.class, () -> {
-            cartaService.inserir(novaCarta);
-        });
+                .assertThrows(VemNoX1Exception.class, () -> {
+                    cartaService.inserir(novaCarta);
+                });
 
         assertThat(exception.getMessage()).isEqualTo("O somatório dos "
-        		+ "atributos da carta não pode ser maior que 10.");
+                + "atributos da carta não pode ser maior que 10.");
     }
 
     @Test
-    //@DisplayName("Deve excluir uma carta por ID")
+    // @DisplayName("Deve excluir uma carta por ID")
     public void testExcluirCasoSucesso() {
-    	int idCartaTestada = 2;
-    	
-		try {
-			cartaService.excluir(idCartaTestada);
-		} catch (VemNoX1Exception e) {
-			fail("Deveria ter excluído. Causa: " + e.getMessage());
-		}
-		
+        int idCartaTestada = 2;
+        try {
+            cartaService.excluir(idCartaTestada);
+        } catch (VemNoX1Exception e) {
+            fail("Deveria ter excluído. Causa: " + e.getMessage());
+        }
         verify(cartaNaPartidaRepository, times(1)).countByIdCarta(idCartaTestada);
         verify(cartaRepository, times(1)).deleteById(idCartaTestada);
     }
-    
+
     @Test
-    //@DisplayName("Deve lançar exceção ao tentar excluir uma carta já usada em uma partida")
+    // @DisplayName("Deve lançar exceção ao tentar excluir uma carta já usada em uma
+    // partida")
     public void testExcluirCasoCartaJaUsadaEmPartida() {
-    	Integer idCartaParaExcluir = 3;
-    	 
-		// Simulação (mock) do repositório: a carta já foi utilizada em 5 partidas (valor arbitrado)
+        Integer idCartaParaExcluir = 3;
+        // Simulação (mock) do repositório: a carta já foi utilizada em 5 partidas
+        // (valor arbitrado)
         when(cartaNaPartidaRepository.countByIdCarta(idCartaParaExcluir)).thenReturn(5L);
 
         VemNoX1Exception excecaoEsperada = Assertions.assertThrows(VemNoX1Exception.class, () -> {
-			cartaService.excluir(idCartaParaExcluir);
+            cartaService.excluir(idCartaParaExcluir);
         });
 
         // Valida a mensagem de erro lançada no CartaService
         assertNotNull(excecaoEsperada);
         assertThat(excecaoEsperada.getMessage()).contains("já utilizada em partida(s), logo não pode ser excluída");
-        
-		// Verifica que o método deleteById do repositório não foi chamado
+        // Verifica que o método deleteById do repositório não foi chamado
         verify(cartaRepository, times(0)).deleteById(idCartaParaExcluir);
     }
 
@@ -194,7 +189,7 @@ public class CartaServiceTest {
     @DisplayName("Deve retornar uma lista de cartas sorteadas")
     public void testSortearSeisCartas() {
         List<Carta> seisCartas = cartas.subList(0, 6);
-		when(cartaRepository.sortearSeisCartasMySQL()).thenReturn(seisCartas);
+        when(cartaRepository.sortearSeisCartasMySQL()).thenReturn(seisCartas);
 
         List<Carta> resultado = cartaService.sortearSeisCartas();
 
@@ -218,12 +213,11 @@ public class CartaServiceTest {
     @DisplayName("Deve pesquisar cartas com seletor e converter para DTO")
     public void testPesquisarComSeletorDTO() {
         CartaSeletor seletor = new CartaSeletor();
-        
-        //when(cartaService.pesquisarComSeletorDTO(seletor)).thenReturn(cartasDTO);
-        //TODO
-        //List<CartaDTO> cartasDTO = cartaService.pesquisarComSeletorDTO(seletor);
+        // when(cartaService.pesquisarComSeletorDTO(seletor)).thenReturn(cartasDTO);
+        // TODO
+        // List<CartaDTO> cartasDTO = cartaService.pesquisarComSeletorDTO(seletor);
 
         assertThat(cartasDTO).isNotNull();
-        //TODO verificar o tamanho da lista
+        // TODO verificar o tamanho da lista
     }
 }
