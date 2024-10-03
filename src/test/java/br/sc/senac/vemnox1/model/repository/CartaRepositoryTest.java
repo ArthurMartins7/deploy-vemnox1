@@ -152,7 +152,7 @@ public class CartaRepositoryTest {
     // }
  
     //Comentado pois a base de testes é mysql
-    //@Test
+    @Test
     @DisplayName("Deve sortear seis cartas (Postgres)")
     public void testSortearSeisCartasPostgres() {
         List<Carta> cartasSorteadas = cartaRepository.sortearSeisCartasPostgres();
